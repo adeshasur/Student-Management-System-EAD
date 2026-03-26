@@ -46,11 +46,9 @@ public class marks extends javax.swing.JFrame {
     public void Connect()
     {
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3307/schoolmanagment","root","");
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(user.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException ex) {
+            Class.forName("org.h2.Driver");
+            con = DriverManager.getConnection("jdbc:h2:./data/schoolmanagment;MODE=MySQL", "sa", "");
+        } catch (Exception ex) {
             Logger.getLogger(user.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -357,7 +355,7 @@ printReport();
 
 //        try {
 //            Class.forName("com.mysql.cj.jdbc.Driver");
-//            con = DriverManager.getConnection("jdbc:mysql://localhost:3307/schoolmanagment", "root", "");
+//            con = DriverManager.getConnection("jdbc:mysql://localhost:3306/schoolmanagment", "root", "");
 //            String reportPath = "C:\\Users\\Tunix\\Desktop\\Student Managment\\StudentManagment\\report.jrxml";
 //
 //            JasperReport jr = JasperCompileManager.compileReport(reportPath);
@@ -372,10 +370,10 @@ printReport();
         
     try {
         // Load MySQL JDBC driver
-        Class.forName("com.mysql.cj.jdbc.Driver");
+        Class.forName("org.h2.Driver");
         
         // Create a connection to the database
-        Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3307/schoolmanagment", "root", "");
+        Connection con = DriverManager.getConnection("jdbc:h2:./data/schoolmanagment;MODE=MySQL", "sa", "");
         System.out.println("[Info]"+con);
         
         // Load the JRXML file from resources
@@ -481,10 +479,10 @@ printReport();
     private void printReport() {
        try {
             // Load MySQL JDBC driver
-            Class.forName("com.mysql.cj.jdbc.Driver");
+            Class.forName("org.h2.Driver");
 
             // Create a connection to the database
-            Connection con = DriverManager.getConnection("jdbc:mysql://localhost:3307/schoolmanagment", "root", "");
+            Connection con = DriverManager.getConnection("jdbc:h2:./data/schoolmanagment;MODE=MySQL", "sa", "");
 
             // Load the JRXML file from resources
             String reportPath = "\\marks.jrxml";

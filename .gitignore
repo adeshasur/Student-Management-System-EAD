@@ -1,2 +1,7 @@
-/build/
-/dist/
+data/
+build/
+*.class
+compile_log.txt
+sources.txt
+dbcheck.java
+nul

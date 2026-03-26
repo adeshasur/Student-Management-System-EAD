@@ -54,11 +54,9 @@ public class teacher extends javax.swing.JFrame {
     public void Connect()
     {
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3307/schoolmanagment","root","");
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(user.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException ex) {
+            Class.forName("org.h2.Driver");
+            con = DriverManager.getConnection("jdbc:h2:./data/schoolmanagment;MODE=MySQL", "sa", "");
+        } catch (Exception ex) {
             Logger.getLogger(user.class.getName()).log(Level.SEVERE, null, ex);
         }
     }

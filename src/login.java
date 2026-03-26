@@ -48,12 +48,26 @@ public class login extends javax.swing.JFrame {
 
     public void Connect() {
         try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-            con = DriverManager.getConnection("jdbc:mysql://localhost:3307/schoolmanagment", "root", "");
-        } catch (ClassNotFoundException ex) {
-            Logger.getLogger(user.class.getName()).log(Level.SEVERE, null, ex);
-        } catch (SQLException ex) {
-            Logger.getLogger(user.class.getName()).log(Level.SEVERE, null, ex);
+            Class.forName("org.h2.Driver");
+            con = DriverManager.getConnection("jdbc:h2:./data/schoolmanagment;MODE=MySQL;AUTO_SERVER=TRUE", "sa", "");
+            System.out.println("Database connected successfully.");
+            
+            // Check if user table exists, if not, run script
+            java.sql.DatabaseMetaData dbm = con.getMetaData();
+            java.sql.ResultSet tables = dbm.getTables(null, null, "USER", null);
+            if (!tables.next()) {
+                System.out.println("User table not found. Initializing database...");
+                java.sql.Statement stmt = con.createStatement();
+                String initSqlPath = new java.io.File("init.sql").getAbsolutePath();
+                System.out.println("Running script from: " + initSqlPath);
+                String sql = "RUNSCRIPT FROM '" + initSqlPath + "'";
+                stmt.execute(sql);
+                System.out.println("Database initialized successfully from init.sql");
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            JOptionPane.showMessageDialog(null, "Database Connection Error: " + ex.getMessage());
+            Logger.getLogger(login.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -236,12 +250,26 @@ public class login extends javax.swing.JFrame {
         String utype = txtutype.getSelectedItem().toString();
 
         try {
-            pst = con.prepareStatement("select * from user where uname = ? and password =? and utype=?");
+            if (con == null) {
+                JOptionPane.showMessageDialog(this, "Database connection not established.");
+                return;
+            }
+            System.out.println("Attempting login: user=" + username + ", pass=" + pass + ", type=" + utype);
+            
+            // Check table count for debugging
+            java.sql.Statement st = con.createStatement();
+            java.sql.ResultSet rsCount = st.executeQuery("SELECT COUNT(*) FROM user");
+            if (rsCount.next()) {
+                System.out.println("Total users in database: " + rsCount.getInt(1));
+            }
+
+            pst = con.prepareStatement("select * from user where uName = ? and password =? and uType=?");
             pst.setString(1, username);
             pst.setString(2, pass);
             pst.setString(3, utype);
             rs = pst.executeQuery();
             if (rs.next()) {
+                System.out.println("Login successful!");
                 int id = rs.getInt("id");
                 this.setVisible(false);
 
@@ -250,8 +278,8 @@ public class login extends javax.swing.JFrame {
                 } else if (utype.equals("Teacher")) {
                     new teachermain(id, username, utype).setVisible(true);
                 }
-//                new main(id,username,utype).setVisible(true);
             } else {
+                System.out.println("Login failed: Username or Password Do not Match");
                 JOptionPane.showMessageDialog(this, "Username or Password Do not Match");
                 txtuname.setText("");
                 txtpass.setText("");
@@ -259,7 +287,10 @@ public class login extends javax.swing.JFrame {
                 txtuname.requestFocus();
 
             }
-        } catch (SQLException ex) {
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            System.out.println("Login error: " + ex.getMessage());
+            JOptionPane.showMessageDialog(this, "Login Error: " + ex.getMessage());
             Logger.getLogger(login.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
