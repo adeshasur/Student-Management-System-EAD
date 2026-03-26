@@ -5,7 +5,7 @@ DROP TABLE IF EXISTS marks;
 DROP TABLE IF EXISTS exam;
 DROP TABLE IF EXISTS student;
 DROP TABLE IF EXISTS subject;
-DROP TABLE IF EXISTS user;
+DROP TABLE IF EXISTS users;
 DROP TABLE IF EXISTS class;
 
 CREATE TABLE class (
@@ -32,7 +32,7 @@ CREATE TABLE subject (
 INSERT INTO subject (subjectname) VALUES ('Software Eng.');
 INSERT INTO subject (subjectname) VALUES ('Network Eng.');
 
-CREATE TABLE user (
+CREATE TABLE users (
     id INT PRIMARY KEY AUTO_INCREMENT,
     name VARCHAR(255) NOT NULL,
     phone INT NOT NULL,
@@ -42,8 +42,9 @@ CREATE TABLE user (
     uType VARCHAR(255) NOT NULL
 );
 
-INSERT INTO user (name, phone, address, uName, password, uType) VALUES ('Amal Silva', 715689652, '56/8A Yakkala, Gampaha', 'admin', 'admin', 'Admin');
-INSERT INTO user (name, phone, address, uName, password, uType) VALUES ('Kasuni', 4554555, 'SAdss', 'Kasuni', '1234', 'Teacher');
+INSERT INTO users (name, phone, address, uName, password, uType) VALUES ('Amal Silva', 715689652, '56/8A Yakkala, Gampaha', 'admin', 'admin', 'Admin');
+INSERT INTO users (name, phone, address, uName, password, uType) VALUES ('Kasuni', 4554555, 'SAdss', 'Kasuni', '1234', 'Teacher');
+
 
 CREATE TABLE student (
     studentid INT PRIMARY KEY AUTO_INCREMENT,

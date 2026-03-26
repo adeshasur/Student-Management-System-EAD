@@ -52,9 +52,9 @@ public class login extends javax.swing.JFrame {
             con = DriverManager.getConnection("jdbc:h2:./data/schoolmanagment;MODE=MySQL;AUTO_SERVER=TRUE", "sa", "");
             System.out.println("Database connected successfully.");
             
-            // Check if user table exists, if not, run script
+            // Check if users table exists, if not, run script
             java.sql.DatabaseMetaData dbm = con.getMetaData();
-            java.sql.ResultSet tables = dbm.getTables(null, null, "USER", null);
+            java.sql.ResultSet tables = dbm.getTables(null, null, "USERS", null);
             if (!tables.next()) {
                 System.out.println("User table not found. Initializing database...");
                 java.sql.Statement stmt = con.createStatement();
@@ -258,12 +258,12 @@ public class login extends javax.swing.JFrame {
             
             // Check table count for debugging
             java.sql.Statement st = con.createStatement();
-            java.sql.ResultSet rsCount = st.executeQuery("SELECT COUNT(*) FROM user");
+            java.sql.ResultSet rsCount = st.executeQuery("SELECT COUNT(*) FROM users");
             if (rsCount.next()) {
                 System.out.println("Total users in database: " + rsCount.getInt(1));
             }
 
-            pst = con.prepareStatement("select * from user where uName = ? and password =? and uType=?");
+            pst = con.prepareStatement("select * from users where uName = ? and password =? and uType=?");
             pst.setString(1, username);
             pst.setString(2, pass);
             pst.setString(3, utype);

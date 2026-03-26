@@ -52,7 +52,7 @@ public class user extends javax.swing.JFrame {
         int c;
         try {
             
-            pst = con.prepareStatement("select * from user");
+            pst = con.prepareStatement("select * from users");
             rs = pst.executeQuery();
             
             ResultSetMetaData rsd = rs.getMetaData();
@@ -400,7 +400,7 @@ public class user extends javax.swing.JFrame {
             String idValue = d.getValueAt(selectIndex, 0).toString();
         int id = Integer.parseInt(idValue);
 
-            pst = con.prepareStatement("delete from user where id =?");
+            pst = con.prepareStatement("delete from users where id =?");
 
             pst.setInt(1, id);
             pst.executeUpdate();
@@ -441,7 +441,7 @@ public class user extends javax.swing.JFrame {
         String utype = txtUtype.getSelectedItem().toString();
 
         // Correct SQL update query
-        pst = con.prepareStatement("UPDATE user SET name = ?, phone = ?, address = ?, uName = ?, password = ?, uType = ? WHERE id = ?");
+        pst = con.prepareStatement("update users set name = ?, phone = ?, address = ?, uName = ?, password = ?, uType = ? where id = ?");
         pst.setString(1, name);
         pst.setString(2, phone);
         pst.setString(3, address);
@@ -503,7 +503,7 @@ public class user extends javax.swing.JFrame {
             String uname = txtUname.getText();
             String password = txtPwd.getText();
             String utype = txtUtype.getSelectedItem().toString();
-            pst = con.prepareStatement("insert into user(name,phone,address,uName,password,uType)values(?,?,?,?,?,?)");
+            pst = con.prepareStatement("insert into users(name,phone,address,uName,password,uType)values(?,?,?,?,?,?)");
             pst.setString(1, name);
             pst.setString(2, phone);
             pst.setString(3, address);
