@@ -52,17 +52,25 @@ public class login extends javax.swing.JFrame {
             con = DriverManager.getConnection("jdbc:h2:./data/schoolmanagment;MODE=MySQL;AUTO_SERVER=TRUE", "sa", "");
             System.out.println("Database connected successfully.");
             
-            // Check if users table exists, if not, run script
+            // Check if users table exists, if not, create tables
             java.sql.DatabaseMetaData dbm = con.getMetaData();
             java.sql.ResultSet tables = dbm.getTables(null, null, "USERS", null);
             if (!tables.next()) {
-                System.out.println("User table not found. Initializing database...");
+                System.out.println("Users table not found. Initializing database...");
                 java.sql.Statement stmt = con.createStatement();
-                String initSqlPath = new java.io.File("init.sql").getAbsolutePath();
-                System.out.println("Running script from: " + initSqlPath);
-                String sql = "RUNSCRIPT FROM '" + initSqlPath + "'";
-                stmt.execute(sql);
-                System.out.println("Database initialized successfully from init.sql");
+                
+                // Create tables directly
+                stmt.execute("CREATE TABLE IF NOT EXISTS users (id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(255), phone INT, address VARCHAR(255), uName VARCHAR(255), password VARCHAR(255), uType VARCHAR(255))");
+                stmt.execute("CREATE TABLE IF NOT EXISTS class (cid INT PRIMARY KEY AUTO_INCREMENT, classname VARCHAR(255), section VARCHAR(255))");
+                stmt.execute("CREATE TABLE IF NOT EXISTS subject (sid INT PRIMARY KEY AUTO_INCREMENT, subjectname VARCHAR(255))");
+                stmt.execute("CREATE TABLE IF NOT EXISTS student (studentid INT PRIMARY KEY AUTO_INCREMENT, stname VARCHAR(255), pname VARCHAR(255), dob DATE, gender VARCHAR(255), phone VARCHAR(255), address VARCHAR(255), class VARCHAR(255), section VARCHAR(255))");
+                stmt.execute("CREATE TABLE IF NOT EXISTS exam (examid INT PRIMARY KEY AUTO_INCREMENT, examname VARCHAR(255), date DATE, class VARCHAR(255), section VARCHAR(255), subject VARCHAR(255))");
+                stmt.execute("CREATE TABLE IF NOT EXISTS marks (markid INT PRIMARY KEY AUTO_INCREMENT, stid INT, stname VARCHAR(255), class VARCHAR(255), subject VARCHAR(255), marks INT)");
+                
+                // Insert default admin
+                stmt.execute("INSERT INTO users (name, phone, address, uName, password, uType) VALUES ('Amal Silva', 715689652, '56/8A Yakkala, Gampaha', 'admin', 'admin', 'Admin')");
+                
+                System.out.println("Database initialized successfully with default records.");
             }
         } catch (Exception ex) {
             ex.printStackTrace();
