@@ -1,7 +1,6 @@
 import java.awt.*;
 import java.awt.event.*;
 import java.sql.*;
-import java.util.*;
 import java.util.logging.*;
 import javax.swing.*;
 import javax.swing.border.*;
@@ -19,8 +18,7 @@ public class user extends JFrame {
     private JPasswordField txtPwd;
     private JComboBox<String> txtUtype;
     private JTable   jTable1;
-    private JScrollPane jScrollPane1;
-    private JButton  save, edit, jButton3, jButton4;
+    private JButton  save, edit;
 
     public user() {
         UITheme.applyGlobalDefaults();
@@ -78,22 +76,22 @@ public class user extends JFrame {
 
         save     = UITheme.button("Save",   UITheme.ACCENT);
         edit     = UITheme.button("Edit",    UITheme.WARNING);
-        jButton3 = UITheme.button("Delete",  UITheme.DANGER);
-        jButton4 = UITheme.button("Clear",   UITheme.MUTED);
-        for(JButton b:new JButton[]{save,edit,jButton3,jButton4}){b.setAlignmentX(LEFT_ALIGNMENT);b.setMaximumSize(new Dimension(Integer.MAX_VALUE,36));form.add(b);form.add(Box.createVerticalStrut(8));}
+        JButton del = UITheme.button("Delete",  UITheme.DANGER);
+        JButton clr = UITheme.button("Clear",   UITheme.MUTED);
+        for(JButton b:new JButton[]{save,edit,del,clr}){b.setAlignmentX(LEFT_ALIGNMENT);b.setMaximumSize(new Dimension(Integer.MAX_VALUE,36));form.add(b);form.add(Box.createVerticalStrut(8));}
 
         save.addActionListener(e -> saveActionPerformed());
         edit.addActionListener(e -> editActionPerformed());
-        jButton3.addActionListener(e -> deleteUser());
-        jButton4.addActionListener(e -> clearForm());
+        del.addActionListener(e -> deleteUser());
+        clr.addActionListener(e -> clearForm());
 
         // Table
         jTable1 = new JTable(new DefaultTableModel(new Object[][]{},new String[]{"ID","Name","Phone","Address","Username","User Type"}){public boolean isCellEditable(int r,int c){return false;}});
         UITheme.styleTable(jTable1);
         jTable1.addMouseListener(new MouseAdapter(){public void mouseClicked(MouseEvent e){loadRow();}});
-        jScrollPane1 = UITheme.scrollPane(jTable1);
+        JScrollPane sp = UITheme.scrollPane(jTable1);
 
-        body.add(form,BorderLayout.WEST); body.add(jScrollPane1,BorderLayout.CENTER);
+        body.add(form,BorderLayout.WEST); body.add(sp,BorderLayout.CENTER);
         root.add(body,BorderLayout.CENTER);
     }
 

@@ -13,17 +13,16 @@ public class teacher extends JFrame {
     PreparedStatement pst;
     ResultSet rs;
     DefaultTableModel d;
-    int newid; String newutype;
 
-    private JTextField txtname, txtqual, txtsal, txtphone, txtemail, txtaddress;
-    private JTable   teachertable;
-    private JScrollPane jScrollPane1;
-    private JButton  btnsave, jButton3, edit;
+    private JTextField   txttname, txtphone, txtaddress;
+    private JTable       teachertable;
+    private JButton      btnsave, btnupdate;
 
-    public teacher() { this(0,""); }
-    public teacher(int iid, String usertype) {
-        UITheme.applyGlobalDefaults(); this.newid=iid; this.newutype=usertype;
-        buildUI(); Connect(); Teacher_Load();
+    public teacher() {
+        UITheme.applyGlobalDefaults();
+        buildUI();
+        Connect();
+        Teacher_Load();
     }
 
     public void Connect() {
@@ -31,92 +30,97 @@ public class teacher extends JFrame {
         catch (Exception ex) { Logger.getLogger(teacher.class.getName()).log(Level.SEVERE, null, ex); }
     }
 
-    private void Teacher_Load() {
+    public void Teacher_Load() {
         try {
-            // Teachers are stored in USERS with UTYPE='Teacher'
-            pst = con.prepareStatement("SELECT * FROM USERS WHERE UTYPE='Teacher' ORDER BY ID");
+            pst = con.prepareStatement("SELECT * FROM TEACHER ORDER BY TID");
             rs = pst.executeQuery(); d = (DefaultTableModel) teachertable.getModel(); d.setRowCount(0);
             while (rs.next()) {
-                d.addRow(new Object[]{rs.getString("ID"), rs.getString("NAME"), rs.getString("PHONE"), rs.getString("ADDRESS"), rs.getString("UNAME")});
+                d.addRow(new Object[]{rs.getString("TID"), rs.getString("TNAME"), rs.getString("PHONE"), rs.getString("ADDRESS")});
             }
         } catch (SQLException ex) { Logger.getLogger(teacher.class.getName()).log(Level.SEVERE, null, ex); }
     }
 
+    private void clearForm() {
+        txttname.setText(""); txtphone.setText(""); txtaddress.setText("");
+        btnsave.setEnabled(true); txttname.requestFocus();
+    }
+
     private void buildUI() {
-        setTitle("Teachers — EduManage"); setDefaultCloseOperation(DISPOSE_ON_CLOSE); setSize(1050, 580); setLocationRelativeTo(null);
+        setTitle("Teachers — EduManage"); setDefaultCloseOperation(DISPOSE_ON_CLOSE); setSize(1000, 550); setLocationRelativeTo(null);
         JPanel root = new JPanel(new BorderLayout()); root.setBackground(UITheme.BG); setContentPane(root);
 
         JPanel header = new JPanel(new BorderLayout());
         header.setBackground(UITheme.SURFACE);
         header.setBorder(BorderFactory.createCompoundBorder(new MatteBorder(0,0,1,0,UITheme.BORDER),new EmptyBorder(14,24,14,24)));
-        header.setPreferredSize(new Dimension(0,60));
-        header.add(UITheme.label("Teacher Management",18f,true),BorderLayout.WEST);
+        header.setPreferredSize(new Dimension(0,64));
+        header.add(UITheme.label("Teacher Management",20f,true),BorderLayout.WEST);
         root.add(header,BorderLayout.NORTH);
 
-        JPanel body = new JPanel(new BorderLayout(20,0)); body.setBackground(UITheme.BG); body.setBorder(new EmptyBorder(20,20,20,20));
+        JPanel body = new JPanel(new BorderLayout(20,0)); body.setBackground(UITheme.BG); body.setBorder(new EmptyBorder(24,24,24,24));
 
         JPanel form = new JPanel(); form.setBackground(UITheme.CARD); form.setLayout(new BoxLayout(form,BoxLayout.Y_AXIS));
-        form.setBorder(BorderFactory.createCompoundBorder(new LineBorder(UITheme.BORDER,1,true),new EmptyBorder(20,20,20,20)));
-        form.setPreferredSize(new Dimension(270,0));
+        form.setBorder(BorderFactory.createCompoundBorder(new LineBorder(UITheme.BORDER,1,true),new EmptyBorder(24,24,24,24)));
+        form.setPreferredSize(new Dimension(300,0));
 
-        JLabel st=UITheme.label("Teacher Details",12f,true); st.setForeground(UITheme.ACCENT); st.setAlignmentX(LEFT_ALIGNMENT); form.add(st); form.add(Box.createVerticalStrut(12));
+        JLabel st=UITheme.label("Teacher Registration",14f,true); st.setForeground(UITheme.ACCENT); st.setAlignmentX(LEFT_ALIGNMENT); form.add(st); form.add(Box.createVerticalStrut(16));
 
-        txtname    = addF(form,"Full Name");
-        txtqual    = addF(form,"Qualification");
-        txtsal     = addF(form,"Salary");
+        txttname   = addF(form,"Teacher Name");
         txtphone   = addF(form,"Phone Number");
-        txtemail   = addF(form,"Email");
         txtaddress = addF(form,"Address");
-        form.add(Box.createVerticalStrut(16));
+        form.add(Box.createVerticalStrut(14));
 
-        btnsave  = UITheme.button("Save",UITheme.ACCENT);
-        jButton3 = UITheme.button("Delete",UITheme.DANGER);
-        edit     = UITheme.button("Edit",UITheme.WARNING);
-        for(JButton b:new JButton[]{btnsave,jButton3,edit}){b.setAlignmentX(LEFT_ALIGNMENT);b.setMaximumSize(new Dimension(Integer.MAX_VALUE,36));form.add(b);form.add(Box.createVerticalStrut(8));}
+        btnsave   = UITheme.button("Save Record", UITheme.ACCENT);
+        btnupdate = UITheme.button("Update Info", UITheme.WARNING);
+        JButton del = UITheme.button("Delete Teacher", UITheme.DANGER);
+        JButton clr = UITheme.button("Clear Form",    UITheme.MUTED);
+
+        for(JButton b:new JButton[]{btnsave,btnupdate,del,clr}){b.setAlignmentX(LEFT_ALIGNMENT);b.setMaximumSize(new Dimension(Integer.MAX_VALUE,38));form.add(b);form.add(Box.createVerticalStrut(10));}
 
         btnsave.addActionListener(e -> {
             try {
-                // Save as user with Teacher type
-                pst = con.prepareStatement("INSERT INTO USERS(NAME,PHONE,ADDRESS,UNAME,PASSWORD,UTYPE) VALUES(?,?,?,?,?,?)");
-                pst.setString(1,txtname.getText()); pst.setString(2,txtphone.getText());
+                pst = con.prepareStatement("INSERT INTO TEACHER(TNAME,PHONE,ADDRESS) VALUES(?,?,?)");
+                pst.setString(1,txttname.getText()); pst.setString(2,txtphone.getText());
                 pst.setString(3,txtaddress.getText());
-                pst.setString(4,txtname.getText().split(" ")[0]); // username = first name
-                pst.setString(5,"1234"); pst.setString(6,"Teacher");
-                pst.executeUpdate(); JOptionPane.showMessageDialog(this,"Teacher added."); Teacher_Load(); clearForm();
-            } catch(SQLException ex){Logger.getLogger(teacher.class.getName()).log(Level.SEVERE,null,ex);}
-        });
-        jButton3.addActionListener(e -> {
-            int row=teachertable.getSelectedRow(); if(row==-1){JOptionPane.showMessageDialog(this,"Select a teacher.");return;}
-            try{pst=con.prepareStatement("DELETE FROM USERS WHERE ID=?"); pst.setString(1,d.getValueAt(row,0).toString()); pst.executeUpdate(); JOptionPane.showMessageDialog(this,"Teacher deleted."); Teacher_Load(); btnsave.setEnabled(true);}
-            catch(SQLException ex){Logger.getLogger(teacher.class.getName()).log(Level.SEVERE,null,ex);}
-        });
-        edit.addActionListener(e -> {
-            int row=teachertable.getSelectedRow(); if(row==-1){JOptionPane.showMessageDialog(this,"Select a teacher.");return;}
-            try{
-                pst=con.prepareStatement("UPDATE USERS SET NAME=?,PHONE=?,ADDRESS=? WHERE ID=?");
-                pst.setString(1,txtname.getText()); pst.setString(2,txtphone.getText()); pst.setString(3,txtaddress.getText());
-                pst.setString(4,d.getValueAt(row,0).toString()); pst.executeUpdate();
-                JOptionPane.showMessageDialog(this,"Teacher updated."); Teacher_Load(); btnsave.setEnabled(true);
+                pst.executeUpdate(); JOptionPane.showMessageDialog(this, "Teacher added."); Teacher_Load(); clearForm();
             }catch(SQLException ex){Logger.getLogger(teacher.class.getName()).log(Level.SEVERE,null,ex);}
         });
+        btnupdate.addActionListener(e -> {
+            int row = teachertable.getSelectedRow(); if(row==-1)return;
+            try {
+                pst = con.prepareStatement("UPDATE TEACHER SET TNAME=?,PHONE=?,ADDRESS=? WHERE TID=?");
+                pst.setString(1,txttname.getText()); pst.setString(2,txtphone.getText());
+                pst.setString(3,txtaddress.getText()); pst.setString(4,d.getValueAt(row,0).toString());
+                pst.executeUpdate(); JOptionPane.showMessageDialog(this, "Record updated."); Teacher_Load(); clearForm();
+            }catch(SQLException ex){Logger.getLogger(teacher.class.getName()).log(Level.SEVERE,null,ex);}
+        });
+        del.addActionListener(e -> {
+            int row = teachertable.getSelectedRow(); if(row==-1)return;
+            try {
+                pst = con.prepareStatement("DELETE FROM TEACHER WHERE TID=?");
+                pst.setString(1, d.getValueAt(row,0).toString());
+                pst.executeUpdate(); JOptionPane.showMessageDialog(this, "Record deleted."); Teacher_Load(); clearForm();
+            }catch(SQLException ex){Logger.getLogger(teacher.class.getName()).log(Level.SEVERE,null,ex);}
+        });
+        clr.addActionListener(e -> clearForm());
 
         // Table
-        teachertable = new JTable(new DefaultTableModel(new Object[][]{},new String[]{"ID","Name","Phone","Address","Username"}){public boolean isCellEditable(int r,int c){return false;}});
+        teachertable = new JTable(new DefaultTableModel(new Object[][]{},new String[]{"ID","Name","Phone","Address"}){public boolean isCellEditable(int r,int c){return false;}});
         UITheme.styleTable(teachertable);
-        teachertable.addMouseListener(new MouseAdapter(){public void mouseClicked(MouseEvent e){
-            int row=teachertable.getSelectedRow(); if(row==-1)return;
-            txtname.setText(safeStr(d.getValueAt(row,1))); txtphone.setText(safeStr(d.getValueAt(row,2))); txtaddress.setText(safeStr(d.getValueAt(row,3)));
-            btnsave.setEnabled(false);
-        }});
-        jScrollPane1 = UITheme.scrollPane(teachertable);
+        teachertable.addMouseListener(new MouseAdapter(){
+            public void mouseClicked(MouseEvent e){ 
+                int row = teachertable.getSelectedRow(); if(row==-1)return;
+                txttname.setText(d.getValueAt(row,1).toString());
+                txtphone.setText(d.getValueAt(row,2).toString()); txtaddress.setText(d.getValueAt(row,3).toString());
+                btnsave.setEnabled(false);
+            }
+        });
+        JScrollPane sp = UITheme.scrollPane(teachertable);
 
-        body.add(form,BorderLayout.WEST); body.add(jScrollPane1,BorderLayout.CENTER);
+        body.add(form,BorderLayout.WEST); body.add(sp,BorderLayout.CENTER);
         root.add(body,BorderLayout.CENTER);
     }
 
-    private JTextField addF(JPanel p,String label){JLabel l=UITheme.mutedLabel(label);l.setAlignmentX(LEFT_ALIGNMENT);JTextField f=UITheme.textField("");f.setMaximumSize(new Dimension(Integer.MAX_VALUE,34));f.setAlignmentX(LEFT_ALIGNMENT);p.add(l);p.add(Box.createVerticalStrut(3));p.add(f);p.add(Box.createVerticalStrut(10));return f;}
-    private void clearForm(){txtname.setText("");txtqual.setText("");txtsal.setText("");txtphone.setText("");txtemail.setText("");txtaddress.setText("");btnsave.setEnabled(true);}
-    private String safeStr(Object o){return o==null?"":o.toString();}
+    private JTextField addF(JPanel p,String label){JLabel l=UITheme.mutedLabel(label);l.setAlignmentX(LEFT_ALIGNMENT);JTextField f=UITheme.textField("");f.setMaximumSize(new Dimension(Integer.MAX_VALUE,34));f.setAlignmentX(LEFT_ALIGNMENT);p.add(l);p.add(Box.createVerticalStrut(4));p.add(f);p.add(Box.createVerticalStrut(10));return f;}
 
     public static void main(String[] args){SwingUtilities.invokeLater(()->new teacher().setVisible(true));}
 }

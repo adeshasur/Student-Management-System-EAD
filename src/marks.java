@@ -1,4 +1,5 @@
 import java.awt.*;
+import java.awt.event.*;
 import java.sql.*;
 import java.util.logging.*;
 import javax.swing.*;
@@ -18,8 +19,7 @@ public class marks extends JFrame {
     private JTextField   txtno, txtstname, txtmarks;
     private JComboBox<String> txtclass, txtsubject, txtterm;
     private JTable       markstable;
-    private JScrollPane  jScrollPane1;
-    private JButton      jButton1, jButton2, jButton3, jButton4;
+    private JButton      btnsave;
 
     public marks() {
         UITheme.applyGlobalDefaults();
@@ -58,6 +58,7 @@ public class marks extends JFrame {
             JasperReport jr = JasperCompileManager.compileReport(rs2);
             JasperPrint jp = JasperFillManager.fillReport(jr, null, rc);
             JasperViewer.viewReport(jp);
+            rc.close();
         } catch (Exception e) { System.err.println("Report error: " + e.getMessage()); }
     }
 
@@ -100,13 +101,13 @@ public class marks extends JFrame {
         txtterm = addC(form,"Term",new String[]{"Term 1","Term 2","Mid Year","Annual"});
         form.add(Box.createVerticalStrut(16));
 
-        jButton1 = UITheme.button("Save",   UITheme.ACCENT);
-        jButton2 = UITheme.button("Delete", UITheme.DANGER);
-        jButton3 = UITheme.button("Clear",  UITheme.MUTED);
-        jButton4 = UITheme.button("Report", UITheme.PURPLE);
-        for(JButton b:new JButton[]{jButton1,jButton2,jButton3,jButton4}){b.setAlignmentX(LEFT_ALIGNMENT);b.setMaximumSize(new Dimension(Integer.MAX_VALUE,36));form.add(b);form.add(Box.createVerticalStrut(8));}
+        btnsave  = UITheme.button("Save",   UITheme.ACCENT);
+        JButton btnDel = UITheme.button("Delete", UITheme.DANGER);
+        JButton btnClr = UITheme.button("Clear",  UITheme.MUTED);
+        JButton btnRep = UITheme.button("Report", UITheme.PURPLE);
+        for(JButton b:new JButton[]{btnsave,btnDel,btnClr,btnRep}){b.setAlignmentX(LEFT_ALIGNMENT);b.setMaximumSize(new Dimension(Integer.MAX_VALUE,36));form.add(b);form.add(Box.createVerticalStrut(8));}
 
-        jButton1.addActionListener(e -> {
+        btnsave.addActionListener(e -> {
             try {
                 pst = con.prepareStatement("INSERT INTO MARKS(STID,STNAME,CLASS,SUBJECT,MARKS) VALUES(?,?,?,?,?)");
                 pst.setString(1,txtno.getText()); pst.setString(2,txtstname.getText());
@@ -116,15 +117,26 @@ public class marks extends JFrame {
                 pst.executeUpdate(); JOptionPane.showMessageDialog(this,"Marks added."); Marks_Load(); clearForm();
             }catch(SQLException ex){Logger.getLogger(marks.class.getName()).log(Level.SEVERE,null,ex);}
         });
-        jButton4.addActionListener(e -> printReport());
-        jButton3.addActionListener(e -> { txtno.setText(""); txtstname.setText(""); txtmarks.setText(""); txtno.requestFocus(); });
+        btnRep.addActionListener(e -> printReport());
+        btnClr.addActionListener(e -> { txtno.setText(""); txtstname.setText(""); txtmarks.setText(""); txtno.requestFocus(); });
+        searchBtn.addActionListener(e -> {
+             try {
+                pst = con.prepareStatement("SELECT * FROM STUDENT WHERE STUDENTID = ?");
+                pst.setString(1, txtno.getText());
+                rs = pst.executeQuery();
+                if (rs.next()) {
+                    txtstname.setText(rs.getString("STNAME"));
+                    txtclass.setSelectedItem(rs.getString("CLASS"));
+                } else { JOptionPane.showMessageDialog(this, "Student not found"); }
+            } catch (SQLException ex) { Logger.getLogger(marks.class.getName()).log(Level.SEVERE, null, ex); }
+        });
 
         // Table
         markstable = new JTable(new DefaultTableModel(new Object[][]{},new String[]{"ID","Stu.ID","Name","Class","Subject","Marks"}){public boolean isCellEditable(int r,int c){return false;}});
         UITheme.styleTable(markstable);
-        jScrollPane1 = UITheme.scrollPane(markstable);
+        JScrollPane sp = UITheme.scrollPane(markstable);
 
-        body.add(form,BorderLayout.WEST); body.add(jScrollPane1,BorderLayout.CENTER);
+        body.add(form,BorderLayout.WEST); body.add(sp,BorderLayout.CENTER);
         root.add(body,BorderLayout.CENTER);
     }
 
@@ -135,7 +147,7 @@ public class marks extends JFrame {
         if(txtclass.getItemCount()>0) txtclass.setSelectedIndex(0);
         if(txtsubject.getItemCount()>0) txtsubject.setSelectedIndex(0);
         if(txtterm.getItemCount()>0) txtterm.setSelectedIndex(0);
-        jButton1.setEnabled(true); txtno.requestFocus();
+        btnsave.setEnabled(true); txtno.requestFocus();
     }
 
     public static void main(String[] args){SwingUtilities.invokeLater(()->new marks().setVisible(true));}

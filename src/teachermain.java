@@ -1,7 +1,5 @@
 import java.awt.*;
 import java.awt.event.*;
-import java.sql.*;
-import java.util.logging.*;
 import javax.swing.*;
 import javax.swing.border.*;
 
@@ -195,7 +193,7 @@ public class teachermain extends JFrame {
 
         JPanel text = new JPanel(new GridLayout(2, 1, 0, 4));
         text.setOpaque(false); text.add(tl); text.add(sl);
-        p.add(ic, BorderLayout.WEST); p.add(text, BorderLayout.CENTER);
+        p.add(text, BorderLayout.CENTER);
         return p;
     }
 

@@ -10,19 +10,11 @@ import javax.swing.border.*;
  */
 public class main extends JFrame {
 
-    int iid;
-    String uname;
-    String usertype;
+    private String uname;
+    private String usertype;
 
     // Stat card value labels (updated from DB)
     private JLabel statStudents, statTeachers, statClasses, statSubjects;
-
-    // Sidebar nav buttons
-    private JButton btnstudent, btnclass, btnexam, btnsubject, btnuser, btnteacher;
-    private JButton btnLogout;
-
-    // Header labels
-    private JLabel jLabel1, jLabel2; // username, usertype
 
     private Connection con;
 
@@ -30,7 +22,6 @@ public class main extends JFrame {
 
     public main(int id, String username, String utype) {
         UITheme.applyGlobalDefaults();
-        this.iid      = id;
         this.uname    = username;
         this.usertype = utype;
         buildUI();
@@ -80,32 +71,18 @@ public class main extends JFrame {
         sb.add(UITheme.sectionHeader("MAIN MENU"));
 
         // Nav buttons
-        btnstudent = UITheme.navButton("", "Students");
-        btnclass   = UITheme.navButton("", "Classes");
-        btnsubject = UITheme.navButton("", "Subjects");
-        btnteacher = UITheme.navButton("", "Teachers");
-        btnexam    = UITheme.navButton("", "Exams");
+        JButton btnstudent = UITheme.navButton("", "Students");
+        JButton btnclass   = UITheme.navButton("", "Classes");
+        JButton btnsubject = UITheme.navButton("", "Subjects");
+        JButton btnteacher = UITheme.navButton("", "Teachers");
+        JButton btnexam    = UITheme.navButton("", "Exams");
+        JButton btnuser    = UITheme.navButton("", "Users");
 
-        sb.add(Box.createVerticalStrut(4));
-        sb.add(UITheme.sectionHeader("MANAGEMENT"));
-
-        btnuser = UITheme.navButton("", "Users");
-
-        for (JButton b : new JButton[]{btnstudent, btnclass, btnsubject, btnteacher, btnexam}) {
+        for (JButton b : new JButton[]{btnstudent, btnclass, btnsubject, btnteacher, btnexam, btnuser}) {
             b.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
             b.setAlignmentX(Component.LEFT_ALIGNMENT);
+            sb.add(b);
         }
-        sb.add(btnstudent);
-        sb.add(btnclass);
-        sb.add(btnsubject);
-        sb.add(btnteacher);
-        sb.add(btnexam);
-
-        sb.add(Box.createVerticalStrut(4));
-        sb.add(UITheme.sectionHeader("SYSTEM"));
-        btnuser.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
-        btnuser.setAlignmentX(Component.LEFT_ALIGNMENT);
-        sb.add(btnuser);
 
         sb.add(Box.createVerticalGlue());
 
@@ -115,7 +92,7 @@ public class main extends JFrame {
         sb.add(sep2);
 
         // Logout
-        btnLogout = UITheme.button("Logout", UITheme.DANGER);
+        JButton btnLogout = UITheme.button("Logout", UITheme.DANGER);
         btnLogout.setAlignmentX(Component.CENTER_ALIGNMENT);
         btnLogout.setMaximumSize(new Dimension(Integer.MAX_VALUE, 44));
         btnLogout.setOpaque(false);
@@ -214,8 +191,8 @@ public class main extends JFrame {
         avatar.setHorizontalAlignment(SwingConstants.CENTER);
         avatar.setPreferredSize(new Dimension(36, 36));
 
-        jLabel1 = UITheme.label(uname, 13f, true);
-        jLabel2 = UITheme.mutedLabel(usertype);
+        JLabel jLabel1 = UITheme.label(uname, 13f, true);
+        JLabel jLabel2 = UITheme.mutedLabel(usertype);
 
         JPanel nameCol = new JPanel(new GridLayout(2, 1, 0, 0));
         nameCol.setOpaque(false);
