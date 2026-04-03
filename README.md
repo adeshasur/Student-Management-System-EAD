@@ -1,6 +1,6 @@
-# EduManage — Student Management System
+# Student Management System - EAD2
 
-A full-featured desktop **Student Management System** built with Java Swing, featuring a modern dark-themed UI. Developed as coursework for the **Enterprise Application Development 01** module at **NIBM**.
+A full-featured desktop **Student Management System** built with Java Swing, featuring a modern dark-themed UI. Developed as coursework for the **Enterprise Application Development 02** module at **NIBM**.
 
 ---
 
@@ -88,6 +88,7 @@ run.bat
 ```
 
 The script will automatically:
+
 1. Create the `build/classes` output directory
 2. Build a symlink junction to handle classpath spaces
 3. Compile all `.java` source files
@@ -129,9 +130,11 @@ Student-Management-System-Java-Swing/
 ## User Roles
 
 ### Admin
+
 Full access to all modules — can manage students, teachers, classes, subjects, exams, marks, and system users.
 
 ### Teacher
+
 Access to the Teacher Dashboard — can view and manage marks and exams.
 
 ---
@@ -157,5 +160,5 @@ This project was developed for academic purposes at **NIBM** as part of the **En
 ---
 
 <div align="center">
-  Developed with focus on Design and Functionality &nbsp;·&nbsp; NIBM &nbsp;·&nbsp; 2026
+  Adheesha Sooriyaarachchi &nbsp;·&nbsp; Enterprise Application Development &nbsp;·&nbsp; NIBM &nbsp;·&nbsp; 2025
 </div>

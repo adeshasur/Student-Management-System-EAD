@@ -26,7 +26,7 @@ public class teachermain extends JFrame {
     }
 
     private void buildUI() {
-        setTitle("EduManage — Teacher Dashboard");
+        setTitle("Student Management System - EAD2 — Teacher Dashboard");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(1000, 620);
         setLocationRelativeTo(null);

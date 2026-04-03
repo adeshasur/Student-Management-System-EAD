@@ -50,7 +50,7 @@ public class login extends JFrame {
     }
 
     private void buildUI() {
-        setTitle("EduManage — Login"); setDefaultCloseOperation(EXIT_ON_CLOSE); setSize(920, 580); setLocationRelativeTo(null); setResizable(false);
+        setTitle("Student Management System - EAD2 — Login"); setDefaultCloseOperation(EXIT_ON_CLOSE); setSize(920, 580); setLocationRelativeTo(null); setResizable(false);
         JPanel root = new JPanel(new BorderLayout()); root.setBackground(UITheme.BG); setContentPane(root);
 
         // Sidebar Branding

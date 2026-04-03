@@ -30,7 +30,7 @@ public class main extends JFrame {
 
     // ─── Build UI ─────────────────────────────────────────────────────────
     private void buildUI() {
-        setTitle("EduManage — Admin Dashboard");
+        setTitle("Student Management System - EAD2 — Admin Dashboard");
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setSize(1100, 680);
         setLocationRelativeTo(null);
