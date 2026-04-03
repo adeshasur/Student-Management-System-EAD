@@ -1,545 +1,123 @@
+import java.awt.*;
+import java.awt.event.*;
+import java.sql.*;
+import java.util.logging.*;
+import javax.swing.*;
+import javax.swing.border.*;
+import javax.swing.table.*;
 
-import java.sql.Connection;
-import java.sql.DriverManager;
-import java.sql.PreparedStatement;
-import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
-import java.sql.SQLException;
-import java.text.SimpleDateFormat;
-import java.util.Vector;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import javax.swing.JOptionPane;
-import javax.swing.table.DefaultTableModel;
+/** Exam management — dark themed CRUD form */
+public class exam extends JFrame {
 
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
-
-/**
- *
- * @author 𝐙𝐚𝐥𝐥𝐤𝐲 𝐍𝐞𝐨
- */
-public class exam extends javax.swing.JFrame {
-
-    /**
-     * Creates new form exam
-     */
-    public exam() {
-        initComponents();
-        Connect();
-        Load_Class();
-        Load_Section();
-        Load_Subject();
-        Exam_Load();
-    }
-    
-    
     Connection con;
     PreparedStatement pst;
     ResultSet rs;
     DefaultTableModel d;
-    
-    public void Connect()
-    {
-        try {
-            Class.forName("org.h2.Driver");
-            con = DriverManager.getConnection("jdbc:h2:./data/schoolmanagment;MODE=MySQL", "sa", "");
-        } catch (Exception ex) {
-            Logger.getLogger(user.class.getName()).log(Level.SEVERE, null, ex);
-        }
+
+    private JTextField   txtename;
+    private JComboBox<String> txtterm, txtclass, txtsection, txtsubject;
+    private JTextField   txtdate_str; // plain text date
+    private JTable       examtable;
+    private JScrollPane  jScrollPane1;
+    private JButton      jButton1, jButton2, btncreate, jButton4;
+
+    public exam() {
+        UITheme.applyGlobalDefaults();
+        buildUI();
+        Connect();
+        Load_Class(); Load_Section(); Load_Subject(); Exam_Load();
     }
-    
-    public void Load_Class()
-    {
-        
+
+    public void Connect() {
+        try { Class.forName("org.h2.Driver"); con = DriverManager.getConnection(UITheme.dbUrl(), "sa", ""); }
+        catch (Exception ex) { Logger.getLogger(exam.class.getName()).log(Level.SEVERE, null, ex); }
+    }
+
+    public void Load_Class() {
+        try { pst = con.prepareStatement("SELECT DISTINCT CLASSNAME FROM CLASS ORDER BY CLASSNAME"); rs = pst.executeQuery(); txtclass.removeAllItems(); while (rs.next()) txtclass.addItem(rs.getString("CLASSNAME")); }
+        catch (SQLException ex) { Logger.getLogger(exam.class.getName()).log(Level.SEVERE, null, ex); }
+    }
+    public void Load_Section() {
+        try { pst = con.prepareStatement("SELECT DISTINCT SECTION FROM CLASS ORDER BY SECTION"); rs = pst.executeQuery(); txtsection.removeAllItems(); while (rs.next()) txtsection.addItem(rs.getString("SECTION")); }
+        catch (SQLException ex) { Logger.getLogger(exam.class.getName()).log(Level.SEVERE, null, ex); }
+    }
+    public void Load_Subject() {
+        try { pst = con.prepareStatement("SELECT DISTINCT SUBJECTNAME FROM SUBJECT ORDER BY SUBJECTNAME"); rs = pst.executeQuery(); txtsubject.removeAllItems(); while (rs.next()) txtsubject.addItem(rs.getString("SUBJECTNAME")); }
+        catch (SQLException ex) { Logger.getLogger(exam.class.getName()).log(Level.SEVERE, null, ex); }
+    }
+
+    public void Exam_Load() {
         try {
-            pst = con.prepareStatement("Select Distinct classname from class");
+            pst = con.prepareStatement("SELECT * FROM EXAM ORDER BY EXAMID");
             rs = pst.executeQuery();
-            txtclass.removeAllItems();
-            
-            while (rs.next())
-            {
-                txtclass.addItem(rs.getString("classname"));
+            d = (DefaultTableModel) examtable.getModel(); d.setRowCount(0);
+            while (rs.next()) {
+                d.addRow(new Object[]{rs.getString("EXAMID"), rs.getString("EXAMNAME"), rs.getString("DATE"), rs.getString("CLASS"), rs.getString("SECTION"), rs.getString("SUBJECT")});
             }
-        } catch (SQLException ex) {
-            Logger.getLogger(exam.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
-    
-     public void Load_Section()
-    {
-        
-        try {
-            pst = con.prepareStatement("Select Distinct section from class");
-            rs = pst.executeQuery();
-            txtsection.removeAllItems();
-            
-            while (rs.next())
-            {
-                txtsection.addItem(rs.getString("section"));
-            }
-        } catch (SQLException ex) {
-            Logger.getLogger(exam.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-     
-     
-      public void Load_Subject()
-    {
-        
-        try {
-            pst = con.prepareStatement("Select Distinct subjectname from subject");
-            rs = pst.executeQuery();
-            txtsubject.removeAllItems();
-            
-            while (rs.next())
-            {
-                txtsubject.addItem(rs.getString("subjectname"));
-            }
-        } catch (SQLException ex) {
-            Logger.getLogger(exam.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-    
-      
-      public void Exam_Load()
-    {
-        int c;
-        try {
-            
-            pst = con.prepareStatement("select * from exam");
-            rs = pst.executeQuery();
-            
-            ResultSetMetaData rsd = rs.getMetaData();
-            c = rsd.getColumnCount();
-            
-            d = (DefaultTableModel)examtable.getModel();
-            d.setRowCount(0);
-            
-            while (rs.next())
-            {
-                Vector v2 = new Vector();
-                
-                for (int i=1; i<=c; i++)
-                {
-                v2.add(rs.getString("eid"));
-                v2.add(rs.getString("ename"));
-                v2.add(rs.getString("date"));
-                v2.add(rs.getString("class"));
-                v2.add(rs.getString("section"));
-                v2.add(rs.getString("subject"));
-             
-                }
-                d.addRow(v2);
-            }
-            
-        } catch (SQLException ex) {
-            Logger.getLogger(user.class.getName()).log(Level.SEVERE, null, ex);
-        }
+        } catch (SQLException ex) { Logger.getLogger(exam.class.getName()).log(Level.SEVERE, null, ex); }
     }
 
-    /**
-     * This method is called from within the constructor to initialize the form.
-     * WARNING: Do NOT modify this code. The content of this method is always
-     * regenerated by the Form Editor.
-     */
-    @SuppressWarnings("unchecked")
-    // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
-    private void initComponents() {
+    private void buildUI() {
+        setTitle("Exams — EduManage"); setDefaultCloseOperation(DISPOSE_ON_CLOSE); setSize(1050, 580); setLocationRelativeTo(null);
+        JPanel root = new JPanel(new BorderLayout()); root.setBackground(UITheme.BG); setContentPane(root);
 
-        jLabel7 = new javax.swing.JLabel();
-        jPanel1 = new javax.swing.JPanel();
-        jLabel8 = new javax.swing.JLabel();
-        jPanel2 = new javax.swing.JPanel();
-        jLabel1 = new javax.swing.JLabel();
-        jLabel2 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
-        jLabel5 = new javax.swing.JLabel();
-        jLabel6 = new javax.swing.JLabel();
-        txtename = new javax.swing.JTextField();
-        txtterm = new javax.swing.JComboBox<>();
-        txtdate = new com.toedter.calendar.JDateChooser();
-        txtclass = new javax.swing.JComboBox<>();
-        txtsection = new javax.swing.JComboBox<>();
-        txtsubject = new javax.swing.JComboBox<>();
-        jButton1 = new javax.swing.JButton();
-        jButton2 = new javax.swing.JButton();
-        btncreate = new javax.swing.JButton();
-        jButton4 = new javax.swing.JButton();
-        jScrollPane1 = new javax.swing.JScrollPane();
-        examtable = new javax.swing.JTable();
+        JPanel header = new JPanel(new BorderLayout());
+        header.setBackground(UITheme.SURFACE);
+        header.setBorder(BorderFactory.createCompoundBorder(new MatteBorder(0,0,1,0,UITheme.BORDER),new EmptyBorder(14,24,14,24)));
+        header.setPreferredSize(new Dimension(0,60));
+        header.add(UITheme.label("📝  Exam Management",18f,true),BorderLayout.WEST);
+        jButton4 = UITheme.button("✕  Close",UITheme.MUTED); jButton4.addActionListener(e -> dispose());
+        header.add(jButton4,BorderLayout.EAST); root.add(header,BorderLayout.NORTH);
 
-        jLabel7.setFont(new java.awt.Font("Arial", 1, 24)); // NOI18N
-        jLabel7.setText("Subject");
+        JPanel body = new JPanel(new BorderLayout(20,0)); body.setBackground(UITheme.BG); body.setBorder(new EmptyBorder(20,20,20,20));
 
-        setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
+        JPanel form = new JPanel(); form.setBackground(UITheme.CARD); form.setLayout(new BoxLayout(form,BoxLayout.Y_AXIS));
+        form.setBorder(BorderFactory.createCompoundBorder(new LineBorder(UITheme.BORDER,1,true),new EmptyBorder(20,20,20,20)));
+        form.setPreferredSize(new Dimension(270,0));
 
-        jPanel1.setBackground(new java.awt.Color(255, 255, 255));
-        jPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        JLabel st = UITheme.label("Add Exam",12f,true); st.setForeground(UITheme.ACCENT); st.setAlignmentX(LEFT_ALIGNMENT); form.add(st); form.add(Box.createVerticalStrut(12));
 
-        jLabel8.setFont(new java.awt.Font("Arial", 1, 24)); // NOI18N
-        jLabel8.setText("Exam");
+        txtename    = addF(form,"Exam Name");
+        txtterm     = addC(form,"Term",new String[]{"Term 1","Term 2","Mid Year","Annual"});
+        txtdate_str = addF(form,"Date (yyyy-MM-dd)");
+        txtclass    = addC(form,"Class",new String[]{});
+        txtsection  = addC(form,"Section",new String[]{});
+        txtsubject  = addC(form,"Subject",new String[]{});
+        form.add(Box.createVerticalStrut(16));
 
-        jPanel2.setBackground(new java.awt.Color(225, 29, 29));
-        jPanel2.setBorder(new javax.swing.border.SoftBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        jButton1 = UITheme.button("💾 Save",UITheme.ACCENT);
+        jButton2 = UITheme.button("🗑 Delete",UITheme.DANGER);
+        btncreate = UITheme.button("✕ Clear",UITheme.MUTED);
+        for (JButton b:new JButton[]{jButton1,jButton2,btncreate}){b.setAlignmentX(LEFT_ALIGNMENT);b.setMaximumSize(new Dimension(Integer.MAX_VALUE,36));form.add(b);form.add(Box.createVerticalStrut(8));}
 
-        jLabel1.setText("Exam Name");
-
-        jLabel2.setText("Term");
-
-        jLabel3.setText("Date");
-
-        jLabel4.setText("Class");
-
-        jLabel5.setText("Section");
-
-        jLabel6.setText("Subject");
-
-        txtterm.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "1", "2", "3", "4", "5", "6" }));
-
-        txtclass.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtclassActionPerformed(evt);
-            }
+        jButton1.addActionListener(e -> {
+            try {
+                pst = con.prepareStatement("INSERT INTO EXAM(EXAMNAME,TERM,DATE,CLASS,SECTION,SUBJECT) VALUES(?,?,?,?,?,?)");
+                pst.setString(1,txtename.getText()); pst.setString(2,txtterm.getSelectedItem().toString());
+                pst.setString(3,txtdate_str.getText());
+                pst.setString(4,txtclass.getSelectedItem()!=null?txtclass.getSelectedItem().toString():"");
+                pst.setString(5,txtsection.getSelectedItem()!=null?txtsection.getSelectedItem().toString():"");
+                pst.setString(6,txtsubject.getSelectedItem()!=null?txtsubject.getSelectedItem().toString():"");
+                pst.executeUpdate(); JOptionPane.showMessageDialog(this,"✅ Exam added."); Exam_Load();
+            } catch(SQLException ex){Logger.getLogger(exam.class.getName()).log(Level.SEVERE,null,ex);}
         });
-
-        txtsection.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtsectionActionPerformed(evt);
-            }
+        jButton2.addActionListener(e -> {
+            int row=examtable.getSelectedRow(); if(row==-1){JOptionPane.showMessageDialog(this,"Select an exam.");return;}
+            try{pst=con.prepareStatement("DELETE FROM EXAM WHERE EXAMID=?"); pst.setString(1,d.getValueAt(row,0).toString()); pst.executeUpdate(); JOptionPane.showMessageDialog(this,"🗑 Exam deleted."); Exam_Load();}
+            catch(SQLException ex){Logger.getLogger(exam.class.getName()).log(Level.SEVERE,null,ex);}
         });
+        btncreate.addActionListener(e -> { txtename.setText(""); txtdate_str.setText(""); jButton1.setEnabled(true); });
 
-        txtsubject.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                txtsubjectActionPerformed(evt);
-            }
-        });
+        examtable = new JTable(new DefaultTableModel(new Object[][]{},new String[]{"ID","Exam Name","Date","Class","Section","Subject"}){public boolean isCellEditable(int r,int c){return false;}});
+        UITheme.styleTable(examtable);
+        jScrollPane1 = UITheme.scrollPane(examtable);
 
-        jButton1.setText("Save");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
-            }
-        });
-
-        jButton2.setText("Delete");
-        jButton2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton2ActionPerformed(evt);
-            }
-        });
-
-        btncreate.setText("Clear");
-        btncreate.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                btncreateActionPerformed(evt);
-            }
-        });
-
-        javax.swing.GroupLayout jPanel2Layout = new javax.swing.GroupLayout(jPanel2);
-        jPanel2.setLayout(jPanel2Layout);
-        jPanel2Layout.setHorizontalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(18, 18, 18)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addComponent(jButton1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 30, Short.MAX_VALUE)
-                        .addComponent(jButton2)
-                        .addGap(18, 18, 18)
-                        .addComponent(btncreate))
-                    .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel1)
-                            .addComponent(jLabel2)
-                            .addComponent(jLabel3)
-                            .addComponent(jLabel4)
-                            .addComponent(jLabel5)
-                            .addComponent(jLabel6))
-                        .addGap(33, 33, 33)
-                        .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addComponent(txtename)
-                            .addComponent(txtdate, javax.swing.GroupLayout.DEFAULT_SIZE, 136, Short.MAX_VALUE)
-                            .addComponent(txtclass, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(txtterm, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(txtsection, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                            .addComponent(txtsubject, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))))
-                .addContainerGap(22, Short.MAX_VALUE))
-        );
-        jPanel2Layout.setVerticalGroup(
-            jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel2Layout.createSequentialGroup()
-                .addGap(29, 29, 29)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1)
-                    .addComponent(txtename, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel2)
-                    .addComponent(txtterm, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel3)
-                    .addComponent(txtdate, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel4)
-                    .addComponent(txtclass, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel5)
-                    .addComponent(txtsection, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel6)
-                    .addComponent(txtsubject, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 41, Short.MAX_VALUE)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton1)
-                    .addComponent(jButton2)
-                    .addComponent(btncreate))
-                .addGap(24, 24, 24))
-        );
-
-        jButton4.setFont(new java.awt.Font("Tahoma", 1, 14)); // NOI18N
-        jButton4.setIcon(new javax.swing.ImageIcon(getClass().getResource("/images/close.png"))); // NOI18N
-        jButton4.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton4ActionPerformed(evt);
-            }
-        });
-
-        examtable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-
-            },
-            new String [] {
-                "Exam ID", "Exam Name", "Date", "Class", "Section", "Subject"
-            }
-        ) {
-            Class[] types = new Class [] {
-                java.lang.Integer.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class, java.lang.Object.class
-            };
-
-            public Class getColumnClass(int columnIndex) {
-                return types [columnIndex];
-            }
-        });
-        examtable.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                examtableMouseClicked(evt);
-            }
-        });
-        jScrollPane1.setViewportView(examtable);
-
-        javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
-        jPanel1.setLayout(jPanel1Layout);
-        jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel1Layout.createSequentialGroup()
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(jLabel8)
-                        .addGap(347, 347, 347)
-                        .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, jPanel1Layout.createSequentialGroup()
-                        .addGap(45, 45, 45)
-                        .addComponent(jPanel2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-        jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jButton4, javax.swing.GroupLayout.PREFERRED_SIZE, 21, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel8))
-                .addGap(33, 33, 33)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jPanel2, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 0, Short.MAX_VALUE))
-                .addContainerGap(22, Short.MAX_VALUE))
-        );
-
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addContainerGap())
-        );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jPanel1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-        );
-
-        pack();
-        setLocationRelativeTo(null);
-    }// </editor-fold>//GEN-END:initComponents
-
-    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        // TODO add your handling code here:
-          try {
-            
-              d = (DefaultTableModel)examtable.getModel();
-        int selectIndex = examtable.getSelectedRow();
-        
-        String id = d.getValueAt(selectIndex, 0).toString();
-      
-        pst = con.prepareStatement("delete from exam where eid = ?");
-        pst.setString(1, id);
-     
-        pst.executeUpdate();
-        JOptionPane.showMessageDialog(this, "Class Deleted");
-        
-        txtclass.setSelectedIndex(-1);
-        txtsection.setSelectedIndex(-1);
-        Exam_Load();
-         jButton2.setEnabled(true);
-        
-        } catch (SQLException ex) {
-            Logger.getLogger(user.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }//GEN-LAST:event_jButton2ActionPerformed
-
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        // TODO add your handling code here:
-        String examname = txtename.getText();
-        String term = txtterm.getSelectedItem().toString();
-        SimpleDateFormat df1 = new SimpleDateFormat("yyyy-MM-dd");
-        String date = df1.format(txtdate.getDate());
-        
-        String classes = txtclass.getSelectedItem().toString();
-        String section = txtsection.getSelectedItem().toString();
-        String subject = txtsubject.getSelectedItem().toString();
-        
-        
-        try {
-            pst = con.prepareStatement("insert into exam(ename,term,date,class,section,subject) values(?,?,?,?,?,?)");
-            
-            
-            
-            
-        pst.setString(1, examname);
-        pst.setString(2, term);
-        pst.setString(3, date);
-        pst.setString(4, classes);
-         pst.setString(5, section);
-        pst.setString(6, subject);
-        
-        
-        pst.executeUpdate();
-        JOptionPane.showMessageDialog(this, "Exam Added");
-        
-       
-         Exam_Load();
-         
-        } catch (SQLException ex) {
-            Logger.getLogger(exam.class.getName()).log(Level.SEVERE, null, ex);
-        }
-       
-    }//GEN-LAST:event_jButton1ActionPerformed
-
-    private void txtclassActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtclassActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtclassActionPerformed
-
-    private void txtsectionActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtsectionActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtsectionActionPerformed
-
-    private void txtsubjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_txtsubjectActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_txtsubjectActionPerformed
-
-    private void examtableMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_examtableMouseClicked
-        // TODO add your handling code here:
-    }//GEN-LAST:event_examtableMouseClicked
-
-    private void btncreateActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_btncreateActionPerformed
-        // TODO add your handling code here:
-        txtclass.setSelectedIndex(-1);
-        txtsection.setSelectedIndex(-1);
-        jButton1.setEnabled(true);
-    }//GEN-LAST:event_btncreateActionPerformed
-
-    private void jButton4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton4ActionPerformed
-        // TODO add your handling code here:
-
-        this.setVisible(false);
-    }//GEN-LAST:event_jButton4ActionPerformed
-
-    /**
-     * @param args the command line arguments
-     */
-    public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
-        //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
-        /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
-         */
-        try {
-            for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
-                if ("Nimbus".equals(info.getName())) {
-                    javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                    break;
-                }
-            }
-        } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(exam.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(exam.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(exam.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(exam.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
-        }
-        //</editor-fold>
-
-        /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new exam().setVisible(true);
-            }
-        });
+        body.add(form,BorderLayout.WEST); body.add(jScrollPane1,BorderLayout.CENTER);
+        root.add(body,BorderLayout.CENTER);
     }
 
-    // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JButton btncreate;
-    private javax.swing.JTable examtable;
-    private javax.swing.JButton jButton1;
-    private javax.swing.JButton jButton2;
-    private javax.swing.JButton jButton4;
-    private javax.swing.JLabel jLabel1;
-    private javax.swing.JLabel jLabel2;
-    private javax.swing.JLabel jLabel3;
-    private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
-    private javax.swing.JLabel jLabel6;
-    private javax.swing.JLabel jLabel7;
-    private javax.swing.JLabel jLabel8;
-    private javax.swing.JPanel jPanel1;
-    private javax.swing.JPanel jPanel2;
-    private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JComboBox<String> txtclass;
-    private com.toedter.calendar.JDateChooser txtdate;
-    private javax.swing.JTextField txtename;
-    private javax.swing.JComboBox<String> txtsection;
-    private javax.swing.JComboBox<String> txtsubject;
-    private javax.swing.JComboBox<String> txtterm;
-    // End of variables declaration//GEN-END:variables
+    private JTextField addF(JPanel p,String label){JLabel l=UITheme.mutedLabel(label);l.setAlignmentX(LEFT_ALIGNMENT);JTextField f=UITheme.textField("");f.setMaximumSize(new Dimension(Integer.MAX_VALUE,34));f.setAlignmentX(LEFT_ALIGNMENT);p.add(l);p.add(Box.createVerticalStrut(3));p.add(f);p.add(Box.createVerticalStrut(10));return f;}
+    private JComboBox<String> addC(JPanel p,String label,String[]items){JLabel l=UITheme.mutedLabel(label);l.setAlignmentX(LEFT_ALIGNMENT);JComboBox<String>c=UITheme.comboBox(items);c.setMaximumSize(new Dimension(Integer.MAX_VALUE,34));c.setAlignmentX(LEFT_ALIGNMENT);p.add(l);p.add(Box.createVerticalStrut(3));p.add(c);p.add(Box.createVerticalStrut(10));return c;}
+
+    public static void main(String[] args){SwingUtilities.invokeLater(()->new exam().setVisible(true));}
 }
