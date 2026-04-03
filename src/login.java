@@ -64,14 +64,31 @@ public class login extends JFrame {
         };
         left.setPreferredSize(new Dimension(360, 580)); left.setLayout(new BoxLayout(left, BoxLayout.Y_AXIS)); left.setBorder(new EmptyBorder(80, 50, 60, 50));
 
+        // Logo circle with icon
         JLabel logo = new JLabel("", SwingConstants.CENTER) {
+            private Image img;
+            {
+                try {
+                    java.net.URL url = getClass().getResource("images/school_white.png");
+                    if (url != null) img = new ImageIcon(url).getImage().getScaledInstance(54, 54, Image.SCALE_SMOOTH);
+                } catch (Exception e) {}
+            }
             @Override protected void paintComponent(Graphics g) {
-                Graphics2D g2 = (Graphics2D) g.create(); g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                g2.setColor(new Color(0x4F8EF7)); g2.fillOval(0,0,getWidth(),getHeight()); g2.dispose();
-                super.paintComponent(g);
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+                g2.setColor(new Color(0x4F8EF7));
+                g2.fillOval(0, 0, getWidth(), getHeight());
+                if (img != null) {
+                    int x = (getWidth() - 54) / 2;
+                    int y = (getHeight() - 54) / 2;
+                    g2.drawImage(img, x, y, null);
+                }
+                g2.dispose();
             }
         };
-        logo.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 52)); logo.setAlignmentX(CENTER_ALIGNMENT); logo.setPreferredSize(new Dimension(80,80)); logo.setMaximumSize(new Dimension(80,80));
+        logo.setAlignmentX(CENTER_ALIGNMENT);
+        logo.setPreferredSize(new Dimension(80, 80));
+        logo.setMaximumSize(new Dimension(80, 80));
 
         JLabel school = UITheme.label("EduManage", 28f, true); school.setForeground(Color.WHITE); school.setAlignmentX(CENTER_ALIGNMENT);
         JLabel tagline = UITheme.label("Student Management System", 13f, false); tagline.setForeground(new Color(0xA0AEC0)); tagline.setAlignmentX(CENTER_ALIGNMENT);
