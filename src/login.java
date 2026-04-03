@@ -69,9 +69,13 @@ public class login extends JFrame {
             private Image img;
             {
                 try {
-                    java.net.URL url = getClass().getResource("images/school_white.png");
-                    if (url != null) img = new ImageIcon(url).getImage().getScaledInstance(54, 54, Image.SCALE_SMOOTH);
-                } catch (Exception e) {}
+                    java.net.URL url = login.class.getResource("/images/school_white.png");
+                    if (url != null) {
+                        img = javax.imageio.ImageIO.read(url).getScaledInstance(54, 54, Image.SCALE_SMOOTH);
+                    }
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
             }
             @Override protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
@@ -82,6 +86,15 @@ public class login extends JFrame {
                     int x = (getWidth() - 54) / 2;
                     int y = (getHeight() - 54) / 2;
                     g2.drawImage(img, x, y, null);
+                } else {
+                    // Fallback to emoji if image fails
+                    g2.setColor(Color.WHITE);
+                    g2.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 40));
+                    FontMetrics fm = g2.getFontMetrics();
+                    String icon = "🏫";
+                    int x = (getWidth() - fm.stringWidth(icon)) / 2;
+                    int y = ((getHeight() - fm.getHeight()) / 2) + fm.getAscent();
+                    g2.drawString(icon, x, y);
                 }
                 g2.dispose();
             }
