@@ -52,7 +52,7 @@ public class user extends javax.swing.JFrame {
         int c;
         try {
             
-            pst = con.prepareStatement("select * from users");
+            pst = con.prepareStatement("SELECT * FROM USERS");
             rs = pst.executeQuery();
             
             ResultSetMetaData rsd = rs.getMetaData();

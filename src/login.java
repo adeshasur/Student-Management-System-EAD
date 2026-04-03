@@ -49,32 +49,37 @@ public class login extends javax.swing.JFrame {
     public void Connect() {
         try {
             Class.forName("org.h2.Driver");
-            con = DriverManager.getConnection("jdbc:h2:./data/schoolmanagment;MODE=MySQL;AUTO_SERVER=TRUE", "sa", "");
+            // Use absolute path passed from run script to avoid working-directory issues
+            String dbPath = System.getProperty("db.path", "./data/schoolmanagment");
+            System.out.println("Connecting to database at: " + dbPath);
+            con = DriverManager.getConnection("jdbc:h2:" + dbPath + ";MODE=MySQL;AUTO_SERVER=TRUE", "sa", "");
             System.out.println("Database connected successfully.");
-            
-            // Check if users table exists, if not, create tables
-            java.sql.DatabaseMetaData dbm = con.getMetaData();
-            java.sql.ResultSet tables = dbm.getTables(null, null, "USERS", null);
-            if (!tables.next()) {
-                System.out.println("Users table not found. Initializing database...");
-                java.sql.Statement stmt = con.createStatement();
-                
-                // Create tables directly
-                stmt.execute("CREATE TABLE IF NOT EXISTS users (id INT PRIMARY KEY AUTO_INCREMENT, name VARCHAR(255), phone INT, address VARCHAR(255), uName VARCHAR(255), password VARCHAR(255), uType VARCHAR(255))");
-                stmt.execute("CREATE TABLE IF NOT EXISTS class (cid INT PRIMARY KEY AUTO_INCREMENT, classname VARCHAR(255), section VARCHAR(255))");
-                stmt.execute("CREATE TABLE IF NOT EXISTS subject (sid INT PRIMARY KEY AUTO_INCREMENT, subjectname VARCHAR(255))");
-                stmt.execute("CREATE TABLE IF NOT EXISTS student (studentid INT PRIMARY KEY AUTO_INCREMENT, stname VARCHAR(255), pname VARCHAR(255), dob DATE, gender VARCHAR(255), phone VARCHAR(255), address VARCHAR(255), class VARCHAR(255), section VARCHAR(255))");
-                stmt.execute("CREATE TABLE IF NOT EXISTS exam (examid INT PRIMARY KEY AUTO_INCREMENT, examname VARCHAR(255), date DATE, class VARCHAR(255), section VARCHAR(255), subject VARCHAR(255))");
-                stmt.execute("CREATE TABLE IF NOT EXISTS marks (markid INT PRIMARY KEY AUTO_INCREMENT, stid INT, stname VARCHAR(255), class VARCHAR(255), subject VARCHAR(255), marks INT)");
-                
-                // Insert default admin
-                stmt.execute("INSERT INTO users (name, phone, address, uName, password, uType) VALUES ('Amal Silva', 715689652, '56/8A Yakkala, Gampaha', 'admin', 'admin', 'Admin')");
-                
-                System.out.println("Database initialized successfully with default records.");
+
+            // Always ensure tables exist (safe with IF NOT EXISTS)
+            java.sql.Statement stmt = con.createStatement();
+            stmt.execute("CREATE TABLE IF NOT EXISTS USERS (ID INT PRIMARY KEY AUTO_INCREMENT, NAME VARCHAR(255), PHONE INT, ADDRESS VARCHAR(255), UNAME VARCHAR(255), PASSWORD VARCHAR(255), UTYPE VARCHAR(255))");
+            stmt.execute("CREATE TABLE IF NOT EXISTS CLASS (CID INT PRIMARY KEY AUTO_INCREMENT, CLASSNAME VARCHAR(255), SECTION VARCHAR(255))");
+            stmt.execute("CREATE TABLE IF NOT EXISTS SUBJECT (SID INT PRIMARY KEY AUTO_INCREMENT, SUBJECTNAME VARCHAR(255))");
+            stmt.execute("CREATE TABLE IF NOT EXISTS STUDENT (STUDENTID INT PRIMARY KEY AUTO_INCREMENT, STNAME VARCHAR(255), PNAME VARCHAR(255), DOB DATE, GENDER VARCHAR(255), PHONE VARCHAR(255), ADDRESS VARCHAR(255), CLASS VARCHAR(255), SECTION VARCHAR(255))");
+            stmt.execute("CREATE TABLE IF NOT EXISTS EXAM (EXAMID INT PRIMARY KEY AUTO_INCREMENT, EXAMNAME VARCHAR(255), DATE DATE, CLASS VARCHAR(255), SECTION VARCHAR(255), SUBJECT VARCHAR(255))");
+            stmt.execute("CREATE TABLE IF NOT EXISTS MARKS (MARKID INT PRIMARY KEY AUTO_INCREMENT, STID INT, STNAME VARCHAR(255), CLASS VARCHAR(255), SUBJECT VARCHAR(255), MARKS INT)");
+
+            // Seed default admin user if USERS table is empty
+            java.sql.ResultSet rsCheck = stmt.executeQuery("SELECT COUNT(*) FROM USERS");
+            if (rsCheck.next() && rsCheck.getInt(1) == 0) {
+                System.out.println("No users found. Inserting default admin account...");
+                stmt.execute("INSERT INTO USERS (NAME, PHONE, ADDRESS, UNAME, PASSWORD, UTYPE) VALUES ('Amal Silva', 715689652, '56/8A Yakkala, Gampaha', 'admin', 'admin', 'Admin')");
+                stmt.execute("INSERT INTO USERS (NAME, PHONE, ADDRESS, UNAME, PASSWORD, UTYPE) VALUES ('Kasuni', 4554555, 'Colombo', 'Kasuni', '1234', 'Teacher')");
+                System.out.println("Default accounts created.");
+            } else {
+                System.out.println("Database tables ready.");
             }
+            rsCheck.close();
+            stmt.close();
         } catch (Exception ex) {
             ex.printStackTrace();
-            JOptionPane.showMessageDialog(null, "Database Connection Error: " + ex.getMessage());
+            System.err.println("DATABASE ERROR: " + ex.getMessage());
+            JOptionPane.showMessageDialog(null, "Database Connection/Initialization Error: " + ex.getMessage());
             Logger.getLogger(login.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
@@ -253,8 +258,8 @@ public class login extends javax.swing.JFrame {
     }
 
     private void loginToSystem() {
-        String username = txtuname.getText();
-        String pass = txtpass.getText();
+        String username = txtuname.getText().trim();
+        String pass = txtpass.getText().trim();
         String utype = txtutype.getSelectedItem().toString();
 
         try {
@@ -262,23 +267,16 @@ public class login extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(this, "Database connection not established.");
                 return;
             }
-            System.out.println("Attempting login: user=" + username + ", pass=" + pass + ", type=" + utype);
-            
-            // Check table count for debugging
-            java.sql.Statement st = con.createStatement();
-            java.sql.ResultSet rsCount = st.executeQuery("SELECT COUNT(*) FROM users");
-            if (rsCount.next()) {
-                System.out.println("Total users in database: " + rsCount.getInt(1));
-            }
+            System.out.println("Attempting login: user=" + username + ", type=" + utype);
 
-            pst = con.prepareStatement("select * from users where uName = ? and password =? and uType=?");
+            pst = con.prepareStatement("SELECT * FROM USERS WHERE UNAME = ? AND PASSWORD = ? AND UTYPE = ?");
             pst.setString(1, username);
             pst.setString(2, pass);
             pst.setString(3, utype);
             rs = pst.executeQuery();
             if (rs.next()) {
                 System.out.println("Login successful!");
-                int id = rs.getInt("id");
+                int id = rs.getInt("ID");
                 this.setVisible(false);
 
                 if (utype.equals("Admin")) {
@@ -287,13 +285,11 @@ public class login extends javax.swing.JFrame {
                     new teachermain(id, username, utype).setVisible(true);
                 }
             } else {
-                System.out.println("Login failed: Username or Password Do not Match");
-                JOptionPane.showMessageDialog(this, "Username or Password Do not Match");
+                System.out.println("Login failed: Invalid credentials.");
+                JOptionPane.showMessageDialog(this, "Username or Password does not match!");
                 txtuname.setText("");
                 txtpass.setText("");
-                txtutype.setSelectedIndex(-1);
                 txtuname.requestFocus();
-
             }
         } catch (Exception ex) {
             ex.printStackTrace();

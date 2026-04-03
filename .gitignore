@@ -3,5 +3,6 @@ build/
 *.class
 compile_log.txt
 sources.txt
+sources_list.txt
 dbcheck.java
 nul

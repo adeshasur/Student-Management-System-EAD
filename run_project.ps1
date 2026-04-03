@@ -1,54 +1,93 @@
 
-# Script to compile and run the Student Management System
+# ──────────────────────────────────────────────────────────
+#  Student Management System – compile & run script
+#  Uses a symlink junction (E:\SMS) to avoid spaces in path
+# ──────────────────────────────────────────────────────────
 
 $projectDir = "e:\Github Projects\Student-Management-System-Java-Swing"
-$srcDir = "$projectDir\src"
-$libDir = "$projectDir\lib"
-$buildDir = "$projectDir\build\classes"
-$netbeansLib = "C:\Program Files\Apache NetBeans\java\modules\ext\AbsoluteLayout.jar"
+$linkDir    = "e:\SMS"    # No spaces – used for javac argfile
+$libDir     = "$projectDir\lib"
+$buildDir   = "$projectDir\build\classes"
+$dataDir    = "$projectDir\data"
+$dbPath     = "$dataDir\schoolmanagment"
 
-# Create necessary directories
-if (-not (Test-Path $buildDir)) {
-    New-Item -ItemType Directory -Force -Path $buildDir
-}
-if (-not (Test-Path "$projectDir\data")) {
-    New-Item -ItemType Directory -Force -Path "$projectDir\data"
+# ── 1. Create directories ──────────────────────────────────
+foreach ($d in @($buildDir, $dataDir)) {
+    if (-not (Test-Path $d)) { New-Item -ItemType Directory -Force -Path $d | Out-Null }
 }
 
+# ── 2. Create symlink junction (spaceless alias) ───────────
+if (-not (Test-Path $linkDir)) {
+    cmd /c "mklink /J `"$linkDir`" `"$projectDir`"" | Out-Null
+    Write-Host "  Created junction: $linkDir -> $projectDir" -ForegroundColor DarkCyan
+}
+
+# ── 3. Build classpath ─────────────────────────────────────
+$cp = (Get-ChildItem -Path $libDir -Filter *.jar | ForEach-Object { $_.FullName }) -join ";"
+@(
+    "C:\Program Files\Apache NetBeans\java\modules\ext\AbsoluteLayout.jar",
+    "C:\Program Files\NetBeans\java\modules\ext\AbsoluteLayout.jar"
+) | ForEach-Object { if ((Test-Path $_) -and ($cp -notlike "*AbsoluteLayout*")) { $script:cp += ";$_" } }
+
+# ── 4. Compile ─────────────────────────────────────────────
 Write-Host "Compiling source files..." -ForegroundColor Cyan
 
-# Create a temporary file list for javac (ASCII to avoid BOM, quoted for spaces, forward slashes for comfort)
-$sourcesFile = "$env:TEMP\sources.txt"
-Get-ChildItem -Path "$srcDir" -Filter *.java | ForEach-Object { "`"$($_.FullName.Replace('\', '/'))`"" } | Out-File -FilePath $sourcesFile -Encoding ASCII
+# Write sources list using the spaceless junction path
+$sourcesFile = "$linkDir\sources_list.txt"
+$javaFiles   = Get-ChildItem -Path "$linkDir\src" -Filter *.java | ForEach-Object { $_.FullName }
+[System.IO.File]::WriteAllLines($sourcesFile, $javaFiles, [System.Text.Encoding]::ASCII)
 
-# Build the initial classpath from the lib directory
-$libs = Get-ChildItem -Path $libDir -Filter *.jar
-$cp = ($libs | ForEach-Object { "$($_.FullName)" }) -join ";"
+Write-Host "  javac @$sourcesFile" -ForegroundColor DarkGray
 
-# Build the final classpath
-$finalCp = "$cp"
-if (Test-Path $netbeansLib) {
-    if ($finalCp) { $finalCp += ";" }
-    $finalCp += "$netbeansLib"
+$procInfo = New-Object System.Diagnostics.ProcessStartInfo
+$procInfo.FileName               = "javac"
+$procInfo.Arguments              = "-d `"$buildDir`" -cp `"$cp`" -encoding UTF-8 @$sourcesFile"
+$procInfo.RedirectStandardOutput = $true
+$procInfo.RedirectStandardError  = $true
+$procInfo.UseShellExecute        = $false
+$procInfo.WorkingDirectory       = $projectDir
+
+$proc = [System.Diagnostics.Process]::Start($procInfo)
+$stdout = $proc.StandardOutput.ReadToEnd()
+$stderr = $proc.StandardError.ReadToEnd()
+$proc.WaitForExit()
+
+($stdout + $stderr) | Out-File -FilePath "$projectDir\compile_log.txt" -Encoding ASCII
+
+if ($proc.ExitCode -ne 0) {
+    Write-Host "Compilation FAILED:" -ForegroundColor Red
+    ($stdout + $stderr) -split "`n" | Where-Object { $_ -match "error:" } | ForEach-Object { Write-Host "  $_" -ForegroundColor Red }
+    Write-Host "See compile_log.txt for full details." -ForegroundColor Yellow
+    exit 1
 }
 
-# Run javac with the @argfile (quote the whole @path for spaces)
-javac -d "$buildDir" -cp "$finalCp" -encoding UTF-8 "@$sourcesFile" 2>&1 | Out-File -FilePath compile_log.txt -Encoding ASCII
+Write-Host "Compilation successful!" -ForegroundColor Green
 
-# Cleanup
-if (Test-Path $sourcesFile) {
-    # Remove-Item $sourcesFile # Commented out for debugging if needed
+# ── 5. Copy resources ──────────────────────────────────────
+$imagesSource = "$projectDir\src\images"
+$imagesDest   = "$buildDir\images"
+if (Test-Path $imagesSource) {
+    if (-not (Test-Path $imagesDest)) { New-Item -ItemType Directory -Force -Path $imagesDest | Out-Null }
+    Copy-Item "$imagesSource\*" -Destination $imagesDest -Recurse -Force
 }
+Get-ChildItem -Path "$projectDir\src" -Include *.jrxml, *.jasper -File |
+    ForEach-Object { Copy-Item $_.FullName -Destination $buildDir -Force }
 
-if ($LASTEXITCODE -eq 0) {
-    Write-Host "Compilation successful!" -ForegroundColor Green
-    Write-Host "Running application..." -ForegroundColor Cyan
-    
-    # Run from the build directory, adding it to the classpath
-    $runCp = "$buildDir;$cp"
-    
-    # Launch the application
-    java -cp "$runCp" login
-} else {
-    Write-Host "Compilation failed with exit code $LASTEXITCODE" -ForegroundColor Red
-}
+# ── 6. Launch ──────────────────────────────────────────────
+Write-Host "Launching Student Management System..." -ForegroundColor Cyan
+Write-Host "  Database: $dbPath" -ForegroundColor DarkCyan
+
+Set-Location $projectDir
+$runCp = "$buildDir;$cp"
+
+$runInfo = New-Object System.Diagnostics.ProcessStartInfo
+$runInfo.FileName               = "java"
+$runInfo.Arguments              = "-cp `"$runCp`" `"-Ddb.path=$dbPath`" login"
+$runInfo.RedirectStandardOutput = $false
+$runInfo.RedirectStandardError  = $false
+$runInfo.UseShellExecute        = $false
+$runInfo.WorkingDirectory       = $projectDir
+
+Write-Host "  java $($runInfo.Arguments)" -ForegroundColor DarkGray
+$runProc = [System.Diagnostics.Process]::Start($runInfo)
+$runProc.WaitForExit()
