@@ -202,12 +202,14 @@ public class UITheme {
         table.setBackground(BG);
         table.setForeground(TEXT);
         table.setFont(fontPlain(13f));
-        table.setRowHeight(36);
+        table.setRowHeight(40);
         table.setShowGrid(false);
         table.setIntercellSpacing(new Dimension(0, 0));
         table.setSelectionBackground(ROW_SEL);
         table.setSelectionForeground(TEXT);
         table.setFillsViewportHeight(true);
+        table.setFocusable(false);
+        
         table.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
             @Override public Component getTableCellRendererComponent(
                     JTable t, Object val, boolean sel, boolean foc, int row, int col) {
@@ -219,18 +221,22 @@ public class UITheme {
                 }
                 setForeground(TEXT);
                 setFont(fontPlain(13f));
-                setBorder(new EmptyBorder(0, 12, 0, 12));
+                setBorder(new EmptyBorder(0, 16, 0, 16));
                 return this;
             }
         });
+        
         JTableHeader header = table.getTableHeader();
         header.setBackground(SIDEBAR);
         header.setForeground(ACCENT);
         header.setFont(fontBold(12f));
-        header.setBorder(new MatteBorder(0, 0, 2, 0, ACCENT));
+        header.setPreferredSize(new Dimension(0, 44));
+        header.setBorder(new MatteBorder(0, 0, 1, 0, BORDER));
         header.setReorderingAllowed(false);
-        ((DefaultTableCellRenderer) header.getDefaultRenderer())
-            .setHorizontalAlignment(SwingConstants.LEFT);
+        
+        DefaultTableCellRenderer headerRenderer = (DefaultTableCellRenderer) header.getDefaultRenderer();
+        headerRenderer.setHorizontalAlignment(SwingConstants.LEFT);
+        headerRenderer.setBorder(new EmptyBorder(0, 16, 0, 16));
     }
 
     // ─── Styled scroll pane ────────────────────────────────────────────────
